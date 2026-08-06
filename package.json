@@ -8,5 +8,8 @@
     "name": "Your Name/Company",
     "email": "contact@yourcompany.com",
     "url": "https://yourcompany.com"
+  },
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
   }
 }
