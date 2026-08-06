@@ -1,0 +1,138 @@
+// Copyright 2017 Google Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+Shader "Brush/DiffuseDoubleSided" {
+
+	Properties
+	{
+	  _Color("Main Color", Color) = (1,1,1,1)
+	  _MainTex("Base (RGB) Trans (A)", 2D) = "white" {}
+	  _Cutoff("Alpha cutoff", Range(0,1)) = 0.5
+	}
+
+		SubShader
+	  {
+		Tags { "Queue" = "AlphaTest" "IgnoreProjector" = "True" "RenderType" = "TransparentCutout" }
+		LOD 200
+		Cull Off
+
+	  CGPROGRAM
+	  #pragma surface surf Lambert vertex:vert alphatest:_Cutoff addshadow
+	  #pragma multi_compile __ TBT_LINEAR_TARGET
+	  #include "../../../Shaders/Include/Brush.cginc"
+	  #pragma target 3.0
+
+	  sampler2D _MainTex;
+	  fixed4 _Color;
+
+	  // =======================
+	  // FIREFLY (GLOBAL PARAMS)
+	  // =======================
+	  float3 _FireflyPos;
+	  float4 _FireflyColor;
+	  float  _FireflyRadius;
+	  float  _FireflyIntensity;
+
+	  struct Input
+	  {
+		float2 uv_MainTex;
+		float4 color : COLOR;
+		fixed  vface : VFACE;
+		float3 worldPos;      // FIREFLY
+	  };
+
+	  void vert(inout appdata_full v)
+	  {
+		v.color = TbVertToNative(v.color);
+	  }
+
+	  void surf(Input IN, inout SurfaceOutput o)
+	  {
+		fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+
+		// base color
+		fixed3 baseColor = c.rgb * IN.color.rgb;
+
+		// =======================
+		// FIREFLY FAKE LIGHT
+		// =======================
+		float dist = distance(IN.worldPos, _FireflyPos);
+		float lightFactor = saturate(1.0 - dist / _FireflyRadius);
+		fixed3 fireflyLight = _FireflyColor.rgb * lightFactor * _FireflyIntensity;
+
+		o.Albedo = baseColor + fireflyLight;
+		o.Alpha = c.a * IN.color.a;
+
+		// double sided normal (keep original)
+		o.Normal = float3(0, 0, IN.vface);
+	  }
+	  ENDCG
+	  }
+
+
+		  // =======================
+		  // MOBILE VERSION
+		  // =======================
+		  SubShader
+	  {
+		Tags { "Queue" = "AlphaTest" "IgnoreProjector" = "True" "RenderType" = "TransparentCutout" }
+		LOD 100
+		Cull Off
+
+	  CGPROGRAM
+	  #pragma surface surf Lambert vertex:vert alphatest:_Cutoff
+	  #pragma multi_compile __ TBT_LINEAR_TARGET
+	  #include "../../../Shaders/Include/Brush.cginc"
+	  #pragma target 3.0
+
+	  sampler2D _MainTex;
+	  fixed4 _Color;
+
+	  // FIREFLY (same params)
+	  float3 _FireflyPos;
+	  float4 _FireflyColor;
+	  float  _FireflyRadius;
+	  float  _FireflyIntensity;
+
+	  struct Input
+	  {
+		float2 uv_MainTex;
+		float4 color : COLOR;
+		fixed  vface : VFACE;
+		float3 worldPos;      // FIREFLY
+	  };
+
+	  void vert(inout appdata_full v)
+	  {
+		v.color = TbVertToNative(v.color);
+	  }
+
+	  void surf(Input IN, inout SurfaceOutput o)
+	  {
+		fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+		fixed3 baseColor = c.rgb * IN.color.rgb;
+
+		float dist = distance(IN.worldPos, _FireflyPos);
+		float lightFactor = saturate(1.0 - dist / _FireflyRadius);
+		fixed3 fireflyLight = _FireflyColor.rgb * lightFactor * _FireflyIntensity;
+
+		o.Albedo = baseColor + fireflyLight;
+		o.Alpha = c.a * IN.color.a;
+		o.Normal = float3(0, 0, IN.vface);
+	  }
+	  ENDCG
+	  }
+
+		  Fallback "Transparent/Cutout/VertexLit"
+}

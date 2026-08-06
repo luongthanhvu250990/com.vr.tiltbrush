@@ -1,0 +1,12 @@
+{
+  "name": "com.vr.tiltbrush",
+  "version": "1.0.0",
+  "displayName": "MH VR Tilt Brush",
+  "description": "VR Tilt Brush\nA cloned of Tilt Brush package",
+  "unity": "6000.4",
+  "author": {
+    "name": "Your Name/Company",
+    "email": "contact@yourcompany.com",
+    "url": "https://yourcompany.com"
+  }
+}
