@@ -37,9 +37,10 @@ Category {
       #pragma multi_compile __ TBT_LINEAR_TARGET
 
       #include "UnityCG.cginc"
+
       #include "../../../Shaders/Include/Brush.cginc"
       #include "../../../Shaders/Include/Particles.cginc"
-      #include "Assets/ThirdParty/Noise/Shaders/Noise.cginc"
+      #include "../../../../ThirdParty/Noise/Shaders/Noise.cginc"
 
       sampler2D _MainTex;
       fixed4 _TintColor;
